@@ -1,0 +1,6 @@
+anonymize/__init__.py
+anonymize/setup.py
+anonymize.egg-info/PKG-INFO
+anonymize.egg-info/SOURCES.txt
+anonymize.egg-info/dependency_links.txt
+anonymize.egg-info/top_level.txt
