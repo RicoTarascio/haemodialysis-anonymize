@@ -1,10 +1,10 @@
-Metadata-Version: 1.0
+Metadata-Version: 2.1
 Name: anonymize
-Version: 0.1
-Summary: A sample Python package
-Home-page: UNKNOWN
-Author: Federico Tarascio
-Author-email: fe.tarascio@gmail.com
-License: UNKNOWN
-Description: UNKNOWN
-Platform: UNKNOWN
+Version: 0.0.1
+Summary: TODO
+Author-email: Federico Tarascio <fe.tarascio@gmail.com>
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.11
+License-File: LICENSE

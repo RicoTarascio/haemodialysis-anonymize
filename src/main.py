@@ -1,0 +1,3 @@
+import anonymize
+
+anonymize.test()
