@@ -1,8 +1,0 @@
-LICENSE
-pyproject.toml
-src/main.py
-src/anonymize/__init__.py
-src/anonymize.egg-info/PKG-INFO
-src/anonymize.egg-info/SOURCES.txt
-src/anonymize.egg-info/dependency_links.txt
-src/anonymize.egg-info/top_level.txt
