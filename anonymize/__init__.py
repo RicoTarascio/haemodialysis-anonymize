@@ -4,4 +4,4 @@ from openpyxl import Workbook
 def test():
     wb = Workbook()
 
-    wb.save("balances.xlsx")
+    wb.save("tests/balances.xlsx")
