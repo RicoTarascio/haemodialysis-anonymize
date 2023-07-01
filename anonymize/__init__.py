@@ -23,7 +23,7 @@ ANON_FOLDER_PATH = os.path.join(ROOT_DIR, "tests/anonymized")
 ANON_ENTRIES_PATH = os.path.join(ANON_FOLDER_PATH, "anon_entries.xlsx")
 
 
-def _getAnonEntriesWb():
+def get_anon_entries_wb():
     if not os.path.exists(ANON_ENTRIES_PATH):
         wb = Workbook()
         ws = wb.active
@@ -40,11 +40,11 @@ def _getAnonEntriesWb():
         return load_workbook(ANON_ENTRIES_PATH)
 
 
-def _getDir(path: str):
+def get_dir(path: str):
     return list(os.scandir(path))
 
 
-def _getPatients(dir: list[os.DirEntry]) -> list[Patient]:
+def get_patients(dir: list[os.DirEntry]) -> list[Patient]:
     # For each file: name-surname-DD_MM__YYYY
     patients = []
     for f in dir:
@@ -54,12 +54,12 @@ def _getPatients(dir: list[os.DirEntry]) -> list[Patient]:
     return patients
 
 
-def _generateUUID5Patient(patient: Patient):
+def generate_UUID5_patient(patient: Patient):
     token = "".join([patient.name, patient.surname, patient.birthDate])
     return "".join(str(uuid5(NAMESPACE_DNS, token)).split("-"))[:10]
 
 
-def _saveAnonPatientFile(file: os.DirEntry, patientID: str):
+def save_anon_patient_file(file: os.DirEntry, patientID: str):
     anonFileName = "".join(
         [patientID, "_", str(datetime.datetime.today().year), ".xlsx"]
     )
@@ -67,7 +67,7 @@ def _saveAnonPatientFile(file: os.DirEntry, patientID: str):
     copy2(file.path, destinationPath)
 
 
-def _isIDInWorksheet(ws: Worksheet, ID: str):
+def is_ID_in_ws(ws: Worksheet, ID: str):
     for i, row in enumerate(ws.values):
         if row[3] == ID:
             print("ID: " + ID + " found existing in row " + str(i))
@@ -75,17 +75,14 @@ def _isIDInWorksheet(ws: Worksheet, ID: str):
     return False
 
 
-def _createAnonEntry(wb: Workbook, patient: Patient, ID: str):
-    ws = wb.get_sheet_by_name("Entries")
-    if _isIDInWorksheet(ws, ID):
+def create_anon_entry(wb: Workbook, ws: Worksheet, patient: Patient, ID: str):
+    if is_ID_in_ws(ws, ID):
         return
 
     ws.append([patient.name, patient.surname, patient.birthDate, ID])
 
-    wb.save(ANON_ENTRIES_PATH)
 
-
-def test():
+def anonymize():
     os.makedirs(ANON_FOLDER_PATH, exist_ok=True)
     if not os.path.exists(ORIGINAL_FOLDER_PATH):
         print(
@@ -93,14 +90,20 @@ def test():
         )
         os.makedirs(ORIGINAL_FOLDER_PATH, exist_ok=True)
         return
-    anonWb = _getAnonEntriesWb()
-    originalDir = _getDir(ORIGINAL_FOLDER_PATH)
-    patients = _getPatients(originalDir)
+    anonWb = get_anon_entries_wb()
+    anonWs = None
+    if anonWb is not None:
+        anonWs = anonWb.get_sheet_by_name("Entries")
+    originalDir = get_dir(ORIGINAL_FOLDER_PATH)
+    patients = get_patients(originalDir)
     print("Found patients: " + str(patients))
     for i, f in enumerate(originalDir):
-        id = _generateUUID5Patient(patients[i])
-        _saveAnonPatientFile(f, id)
-        if anonWb is not None:
-            _createAnonEntry(anonWb, patients[i], id)
+        id = generate_UUID5_patient(patients[i])
+        save_anon_patient_file(f, id)
+        if anonWb is not None and anonWs is not None:
+            create_anon_entry(anonWb, anonWs, patients[i], id)
         else:
             print("[ERROR] Workbook for entries is None")
+
+    if anonWb is not None:
+        anonWb.save(ANON_ENTRIES_PATH)
