@@ -13,7 +13,8 @@ It is advisable to install this in a Python virtualenv without system packages.
 To test full functionalities run
 
 `import anonymize`
-`anonymize.test()`
+
+`anonymize.anonymize()`
 
 The function will:
 
