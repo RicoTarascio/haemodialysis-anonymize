@@ -3,7 +3,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.styles import Font, Alignment
 import os
 from collections.abc import Iterator
-from uuid import uuid5, NAMESPACE_DNS
+from uuid import uuid4, NAMESPACE_DNS
 from dataclasses import dataclass
 from shutil import copy2
 import datetime
@@ -49,14 +49,13 @@ def get_patients(dir: list[os.DirEntry]) -> list[Patient]:
     patients = []
     for f in dir:
         noExt = str(f.name).split(".")[0]
-        [name, surname, birthDate] = noExt.strip().split("-")
+        [name, surname, birthDate] = noExt.strip().upper().split("-")
         patients.append(Patient(name, surname, birthDate))
     return patients
 
 
-def generate_UUID5_patient(patient: Patient):
-    token = "".join([patient.name, patient.surname, patient.birthDate])
-    return "".join(str(uuid5(NAMESPACE_DNS, token)).split("-"))[:10]
+def generate_UUID4():
+    return "".join(str(uuid4()).split("-"))[:10]
 
 
 def save_anon_patient_file(file: os.DirEntry, patientID: str):
@@ -67,18 +66,38 @@ def save_anon_patient_file(file: os.DirEntry, patientID: str):
     copy2(file.path, destinationPath)
 
 
-def is_ID_in_ws(ws: Worksheet, ID: str):
+def is_patient_in_ws(ws: Worksheet, patient: Patient):
     for i, row in enumerate(ws.values):
-        if row[3] == ID:
-            print("ID: " + ID + " found existing in row " + str(i))
+        if (
+            row[0] == patient.name
+            and row[1] == patient.surname
+            and row[2] == patient.birthDate
+        ):
+            print("Patient: " + str(patient) + " found existing in row " + str(i))
             return True
     return False
 
 
-def create_anon_entry(wb: Workbook, ws: Worksheet, patient: Patient, ID: str):
-    if is_ID_in_ws(ws, ID):
-        return
+def get_patient_id(ws: Worksheet, patient: Patient):
+    for i, row in enumerate(ws.values):
+        if (
+            row[0] == patient.name
+            and row[1] == patient.surname
+            and row[2] == patient.birthDate
+        ):
+            print(
+                "Found id: "
+                + str(row[3])
+                + " for patient "
+                + str(patient)
+                + " in row: "
+                + str(i)
+            )
+            return str(row[3])
+    return None
 
+
+def create_anon_entry(wb: Workbook, ws: Worksheet, patient: Patient, ID: str):
     ws.append([patient.name, patient.surname, patient.birthDate, ID])
 
 
@@ -97,13 +116,15 @@ def anonymize():
     originalDir = get_dir(ORIGINAL_FOLDER_PATH)
     patients = get_patients(originalDir)
     print("Found patients: " + str(patients))
-    for i, f in enumerate(originalDir):
-        id = generate_UUID5_patient(patients[i])
-        save_anon_patient_file(f, id)
-        if anonWb is not None and anonWs is not None:
-            create_anon_entry(anonWb, anonWs, patients[i], id)
-        else:
-            print("[ERROR] Workbook for entries is None")
+    if anonWb is None or anonWs is None:
+        print("[ERROR] Workbook or Worksheet for entries is None")
+        return
 
-    if anonWb is not None:
-        anonWb.save(ANON_ENTRIES_PATH)
+    for i, f in enumerate(originalDir):
+        patient_id = get_patient_id(anonWs, patients[i])
+        if patient_id is None:
+            patient_id = generate_UUID4()
+            create_anon_entry(anonWb, anonWs, patients[i], patient_id)
+        save_anon_patient_file(f, patient_id)
+
+    anonWb.save(ANON_ENTRIES_PATH)
