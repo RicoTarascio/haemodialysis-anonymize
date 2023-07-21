@@ -1,3 +1,2 @@
-import anonymize
-
-anonymize.test()
+import anonymize as anon
+import analyze as ana
