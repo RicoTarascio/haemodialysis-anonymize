@@ -1,1 +1,3 @@
-import analyze as ana
+import anonymize as anon
+
+anon.anonymize()
